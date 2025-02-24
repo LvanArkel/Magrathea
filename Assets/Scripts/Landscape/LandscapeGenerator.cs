@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 using Random = UnityEngine.Random;
@@ -8,14 +9,25 @@ public class LandscapeGenerator : MonoBehaviour
     // World generation components
     [SerializeField]
     TerrainGenerator terrainGenerator;
-
+    [SerializeField]
+    CurvePlanner curvePlanner;
+    [SerializeField]
+    FatCurveGenerator fatCurveGenerator;
+    [SerializeField]
+    FatCurveTerrainCombinator fatCurveTerrainCombinator;
 
     // Rendering/preview components
     [SerializeField]
     TerrainRenderer terrainRenderer;
 
     [SerializeField]
+    RiverRenderer riverRenderer;
+
+    [SerializeField]
     HeightmapPreview heightmapPreview;
+
+    [SerializeField]
+    RiverPreview riverPreview;
 
     [SerializeField]
     Transform world;
@@ -26,7 +38,7 @@ public class LandscapeGenerator : MonoBehaviour
     // Settings
     [Serializable]
     public struct TerrainGenerationSettings {
-
+        public bool generateRivers;
     }
 
     [SerializeField]
@@ -47,7 +59,7 @@ public class LandscapeGenerator : MonoBehaviour
     private void Awake() {
         GenerateCombinedTerrain(
             new TerrainGenerationSettings {
-                
+                generateRivers = true,
             },
             seed
         );
@@ -75,10 +87,20 @@ public class LandscapeGenerator : MonoBehaviour
         var start = DateTime.Now;
         ChunkManager chunks = terrainGenerator.GenerateTerrain();
         chunks.NormalizeChunks(0f, verticalScale);
-        // TODO: Continue algorithm;
+        List<CurveShape> curves;
+        if (settings.generateRivers) {
+            curves = curvePlanner.PlanCurves(horizontalScale, chunks.GetBounds());
+        } else {
+            curves = new List<CurveShape>();
+        }
+        var fatCurves = fatCurveGenerator.GenerateFatCurves(curves);
+        var chunkTriIntersections = FatCurveIntersectionCalculator
+            .calculateChunkCurveIntersections(fatCurves, chunks);
+        fatCurveTerrainCombinator.CombineTerrainCurves(chunks, fatCurves, chunkTriIntersections);
 
         // Render generated terrain
         terrainRenderer.GenerateChunks(chunks, horizontalScale, verticalScale);
+        riverRenderer.GenerateRiverMeshes(fatCurves, horizontalScale, chunks);
         var camera = Camera.main;
         var centerPos = chunks.GetBounds().center.x;
         camera.transform.position = new Vector3(
@@ -92,6 +114,7 @@ public class LandscapeGenerator : MonoBehaviour
         // Show previews
         if (previewsEnabled) {
             heightmapPreview.PreviewHeightmaps(chunks);
+            riverPreview.PreviewCurves(curves, new Vector3(-chunks.ChunkWidth(), 0f, 0f));
         }
         if (generationSeed != 0)
         {
