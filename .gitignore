@@ -1,0 +1,12 @@
+.vscode/*
+
+Library/*
+Logs/*
+Packages/*
+ProjectSettings/*
+Temp/*
+UserSettings/*
+Assembly-CSharp-Editor.csproj
+Assembly-CSharp.csproj
+*.sln
+**/*.meta
