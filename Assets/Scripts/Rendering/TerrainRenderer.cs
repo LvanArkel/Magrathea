@@ -10,8 +10,7 @@ public class TerrainRenderer : MonoBehaviour
 
     internal void GenerateChunks(
         ChunkManager chunks, 
-        float horizontalScale,
-        float verticalScale)
+        float horizontalScale)
     {
         foreach (var (coordinate, chunk) in chunks.ChunksIndexed())
         {

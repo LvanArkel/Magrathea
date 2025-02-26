@@ -7,7 +7,7 @@ using Random = UnityEngine.Random;
 public class LandscapeGenerator : MonoBehaviour
 {
     // World generation components
-    [SerializeField]
+    [SerializeField, Header("World generation components")]
     TerrainGenerator terrainGenerator;
     [SerializeField]
     CurvePlanner curvePlanner;
@@ -15,9 +15,13 @@ public class LandscapeGenerator : MonoBehaviour
     FatCurveGenerator fatCurveGenerator;
     [SerializeField]
     FatCurveTerrainCombinator fatCurveTerrainCombinator;
+    [SerializeField]
+    ObjectPlacementGenerator objectPlacementGenerator;
+    [SerializeField]
+    ObjectPlacer objectPlacer;
 
     // Rendering/preview components
-    [SerializeField]
+    [SerializeField, Header("Rendering/preview components")]
     TerrainRenderer terrainRenderer;
 
     [SerializeField]
@@ -35,17 +39,18 @@ public class LandscapeGenerator : MonoBehaviour
     [SerializeField]
     Transform previews;
 
+    [SerializeField]
+    bool previewsEnabled;
+
     // Settings
     [Serializable]
     public struct TerrainGenerationSettings {
         public bool generateRivers;
+        public bool generatePddObjects;
     }
 
-    [SerializeField]
+    [SerializeField, Header("Parameters")]
     TerrainGenerationSettings terrainGenerationSettings;
-
-    [SerializeField]
-    bool previewsEnabled;
 
     [SerializeField]
     int seed;
@@ -85,8 +90,10 @@ public class LandscapeGenerator : MonoBehaviour
             Debug.Log("Initializing with seed " + seed.ToString());
         }
         var start = DateTime.Now;
+        // Generate terrain
         ChunkManager chunks = terrainGenerator.GenerateTerrain();
         chunks.NormalizeChunks(0f, verticalScale);
+        // Generate rivers
         List<CurveShape> curves;
         if (settings.generateRivers) {
             curves = curvePlanner.PlanCurves(horizontalScale, chunks.GetBounds());
@@ -97,10 +104,24 @@ public class LandscapeGenerator : MonoBehaviour
         var chunkTriIntersections = FatCurveIntersectionCalculator
             .calculateChunkCurveIntersections(fatCurves, chunks);
         fatCurveTerrainCombinator.CombineTerrainCurves(chunks, fatCurves, chunkTriIntersections);
-
+        // Generate placement objects
+        List<PlaceableObject> placeableObjects;
+        if (settings.generatePddObjects) {
+            placeableObjects = objectPlacementGenerator.GenerateObjectPlacements(
+                settings.generatePddObjects,
+                chunks.GetBounds(),
+                horizontalScale,
+                chunks,
+                fatCurves,
+                chunkTriIntersections
+            );
+        } else {
+            placeableObjects = new List<PlaceableObject>();
+        }
         // Render generated terrain
-        terrainRenderer.GenerateChunks(chunks, horizontalScale, verticalScale);
+        terrainRenderer.GenerateChunks(chunks, horizontalScale);
         riverRenderer.GenerateRiverMeshes(fatCurves, horizontalScale, chunks);
+        objectPlacer.PlaceObjects(placeableObjects, horizontalScale);
         var camera = Camera.main;
         var centerPos = chunks.GetBounds().center.x;
         camera.transform.position = new Vector3(
@@ -110,7 +131,6 @@ public class LandscapeGenerator : MonoBehaviour
         var end = DateTime.Now;
         var duration = end - start;
         Debug.Log($"World generated in {duration:ss\\.fff} seconds");
-
         // Show previews
         if (previewsEnabled) {
             heightmapPreview.PreviewHeightmaps(chunks);
