@@ -47,6 +47,7 @@ public class LandscapeGenerator : MonoBehaviour
     public struct TerrainGenerationSettings {
         public bool generateRivers;
         public bool generatePddObjects;
+        public bool generateDeformationObjects;
     }
 
     [SerializeField, Header("Parameters")]
@@ -106,17 +107,21 @@ public class LandscapeGenerator : MonoBehaviour
         fatCurveTerrainCombinator.CombineTerrainCurves(chunks, fatCurves, chunkTriIntersections);
         // Generate placement objects
         List<PlaceableObject> placeableObjects;
+        DeformationField deformationField;
         if (settings.generatePddObjects) {
             placeableObjects = objectPlacementGenerator.GenerateObjectPlacements(
                 settings.generatePddObjects,
+                settings.generateDeformationObjects,
                 chunks.GetBounds(),
                 horizontalScale,
                 chunks,
                 fatCurves,
-                chunkTriIntersections
+                chunkTriIntersections,
+                out deformationField
             );
         } else {
             placeableObjects = new List<PlaceableObject>();
+            deformationField = null;
         }
         // Render generated terrain
         terrainRenderer.GenerateChunks(chunks, horizontalScale);
@@ -133,7 +138,7 @@ public class LandscapeGenerator : MonoBehaviour
         Debug.Log($"World generated in {duration:ss\\.fff} seconds");
         // Show previews
         if (previewsEnabled) {
-            heightmapPreview.PreviewHeightmaps(chunks);
+            heightmapPreview.PreviewHeightmaps(chunks, deformationField);
             riverPreview.PreviewCurves(curves, new Vector3(-chunks.ChunkWidth(), 0f, 0f));
         }
         if (generationSeed != 0)

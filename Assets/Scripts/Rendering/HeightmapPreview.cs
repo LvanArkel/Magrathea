@@ -11,11 +11,13 @@ public class HeightmapPreview : MonoBehaviour
     enum VisualisationMode
     {
         Heightmap,
+        DeformationField,
     }
     [SerializeField]
     VisualisationMode visualisationMode;
 
-    internal void PreviewHeightmaps(ChunkManager chunks)
+    internal void PreviewHeightmaps(ChunkManager chunks, 
+        DeformationField deformationField)
     {
         transform.position = new Vector3(
             -chunks.ChunkWidth(),
@@ -34,6 +36,19 @@ public class HeightmapPreview : MonoBehaviour
             {
                 case VisualisationMode.Heightmap:
                     heightMap = chunks.NormalizedHeightmap(chunk);
+                    break;
+                case VisualisationMode.DeformationField:
+                    var deformationFieldSize = deformationField.field.GetLength(0) / chunks.ChunkWidth();
+                    heightMap = new float[deformationFieldSize, deformationFieldSize];
+                    for (int x = 0; x < deformationFieldSize; x++)
+                    {
+                        for (int z = 0; z < deformationFieldSize; z++)
+                        {
+                            heightMap[z, x] = deformationField.field[
+                                coordinate.x * deformationFieldSize + x,
+                                coordinate.y * deformationFieldSize + z];
+                        }
+                    }
                     break;
             }
             preview.SetHeightMapTexture(heightMap);
