@@ -1,12 +1,16 @@
 using UnityEditor;
 using UnityEngine;
 
+[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 internal class CurvePreview : MonoBehaviour {
     CurveShape curve;
     float tangentLength = 0.3f;
 
-    public void SetCurve(CurveShape curve) {
+    public void SetCurve(CurveShape curve, FatCurve fatCurve) {
         this.curve = curve;
+        var meshFilter = GetComponent<MeshFilter>();
+        var mesh = fatCurve.toFlatMesh();
+        meshFilter.mesh = mesh;
     }
 
     void OnDrawGizmos()

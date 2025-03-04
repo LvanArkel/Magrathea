@@ -38,6 +38,9 @@ public class HeightmapPreview : MonoBehaviour
                     heightMap = chunks.NormalizedHeightmap(chunk);
                     break;
                 case VisualisationMode.DeformationField:
+                    if (deformationField == null) {
+                        break;
+                    }
                     var deformationFieldSize = deformationField.field.GetLength(0) / chunks.ChunkWidth();
                     heightMap = new float[deformationFieldSize, deformationFieldSize];
                     for (int x = 0; x < deformationFieldSize; x++)
@@ -51,7 +54,9 @@ public class HeightmapPreview : MonoBehaviour
                     }
                     break;
             }
-            preview.SetHeightMapTexture(heightMap);
+            if (heightMap != null) {
+                preview.SetHeightMapTexture(heightMap);
+            }
         }
     }
 }

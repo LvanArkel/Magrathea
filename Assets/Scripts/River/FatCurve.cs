@@ -79,6 +79,16 @@ internal class FatCurve {
                     vertex.y = chunks.GetHeight(vertex);
                     return vertex;
                 }).ToArray();
+        return generateMesh(vertices);
+    }
+
+    public Mesh toFlatMesh() {
+        var vertices = triangles.SelectMany(triangle => new List<Vector3> { triangle.va, triangle.vb, triangle.vc })
+            .ToArray();
+        return generateMesh(vertices);
+    }
+
+    private Mesh generateMesh(Vector3[] vertices) {
         var uvs = triangles.SelectMany(triangle =>
         {
             var us = triangle.uIndices;

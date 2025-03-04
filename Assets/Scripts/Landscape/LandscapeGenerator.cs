@@ -139,7 +139,7 @@ public class LandscapeGenerator : MonoBehaviour
         // Show previews
         if (previewsEnabled) {
             heightmapPreview.PreviewHeightmaps(chunks, deformationField);
-            riverPreview.PreviewCurves(curves, new Vector3(-chunks.ChunkWidth(), 0f, 0f));
+            riverPreview.PreviewCurves(curves, fatCurves, new Vector3(-chunks.ChunkWidth(), 0f, 0f));
         }
         if (generationSeed != 0)
         {
