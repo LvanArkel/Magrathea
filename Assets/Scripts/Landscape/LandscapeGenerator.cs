@@ -108,7 +108,7 @@ public class LandscapeGenerator : MonoBehaviour
         // Generate placement objects
         List<PlaceableObject> placeableObjects;
         DeformationField deformationField;
-        if (settings.generatePddObjects) {
+        if (settings.generatePddObjects || settings.generateDeformationObjects) {
             placeableObjects = objectPlacementGenerator.GenerateObjectPlacements(
                 settings.generatePddObjects,
                 settings.generateDeformationObjects,

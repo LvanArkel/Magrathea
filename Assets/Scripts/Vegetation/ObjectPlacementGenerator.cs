@@ -57,7 +57,7 @@ internal class ObjectPlacementGenerator : MonoBehaviour
             );
             var emptyKernelCurve = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(1f, 0f));
             var pddGenObjects = pddPlacementGenerator.pddObjects;
-            for (int i = 0; i < pddGenObjects.Count; i++)
+            for (int i = 0; i < pddObjects.Count; i++)
             {
                 var positions = pddObjects[i].Item2;
                 var pddObject = pddGenObjects[i];
